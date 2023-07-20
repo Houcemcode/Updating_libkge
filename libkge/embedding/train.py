@@ -36,42 +36,23 @@ def generate_batches(data, batch_size=128, shuffle=False):
         yield data[batch_indices]
 
 
+
+
 def generate_rand_negs(triples, nb_corrs, nb_ents, seed, *args, **kwargs):
-    """ Generate random negatives for some positive triples.
-
-    Parameters
-    ----------
-    triples : tf.Tensor
-        tensorflow tensor for positive triples with size [?, 3].
-    nb_corrs : int
-        Number of corruptions to generate per triple.
-    nb_ents : int
-        Total number of entities.
-    seed : int
-        Random seed.
-
-    Returns
-    ---------
-    tf.Tensor
-        tensorflow tensor for negative triples of size [?, 3].
-
-    Note
-    ---------
-    The passed `nb_corrs` is evenly distributed between head and tail corruptions.
-
-    Warning
-    ---------
-    This corruption heuristic might generate original true triples as corruptions.
-    """
-    nb_corrs /= 2
-    neg_sub_rel, objs = tf.split(tf.tile(triples, [ceil(nb_corrs), 1]), [2, 1], axis=1)
-    subs, neg_rel_obj = tf.split(tf.tile(triples, [floor(nb_corrs), 1]), [1, 2], axis=1)
-
-    neg_objs = tf.random_uniform(tf.shape(objs), dtype=tf.int32, minval=0, maxval=nb_ents, seed=seed)
-    neg_subs = tf.random_uniform(tf.shape(subs), dtype=tf.int32, minval=0, maxval=nb_ents, seed=seed)
-
-    return tf.concat([tf.concat([neg_subs, neg_rel_obj], axis=1), tf.concat([neg_sub_rel, neg_objs], axis=1)], axis=0)
-
+    nb_corrs = nb_corrs // 2
+    print("triples : ",triples)
+    neg_sub_rel = tf.tile(triples[:, :2], [tf.cast(nb_corrs, tf.int32), 1])
+    neg_obj = tf.tile(triples[:, 2:], [tf.cast(nb_corrs, tf.int32), 1])
+    neg_rel_obj = tf.concat([neg_sub_rel, neg_obj], axis=1)
+    print("seed : ",seed)
+    print("nb_ents : ",nb_ents)
+    subs = tf.tile(triples[:, :1], [tf.cast(nb_corrs, tf.int32), 1])
+    neg_rel = tf.tile(triples[:, 1:2], [tf.cast(nb_corrs, tf.int32), 1])
+    neg_objs = tf.random.uniform(tf.shape(subs), dtype=tf.int32, minval=0, maxval=nb_ents, seed=seed)
+    neg_subs = tf.random.uniform(tf.shape(neg_rel), dtype=tf.int32, minval=0, maxval=nb_ents, seed=seed)
+    print("shape of : neg_subs", neg_subs)
+    print("shape of : neg_rel_obj", neg_rel_obj)
+    return tf.concat([tf.concat([neg_subs, neg_rel_obj], axis=1), tf.concat([subs, neg_rel, neg_objs], axis=1)], axis=0)
 
 def init_tf_optimiser(optimiser, lr=0.01, *args, **kwargs):
     """ Initialise tensorflow optimiser object

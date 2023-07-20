@@ -8,7 +8,9 @@ from sklearn.base import BaseEstimator, RegressorMixin
 from .constraints import *
 from .losses import *
 from .train import *
+tf.compat.v1.disable_eager_execution()
 
+#neg_sub_rel = tf.tile(triples[:, :2], [tf.cast(tf.math.ceil(6/2), tf.int32), 1])
 
 class KnowledgeGraphEmbeddingModel(BaseEstimator, RegressorMixin, metaclass=ABCMeta):
     """An abstract class for the knowledge graph embedding models.
@@ -110,7 +112,7 @@ class KnowledgeGraphEmbeddingModel(BaseEstimator, RegressorMixin, metaclass=ABCM
         # random states - initialise numpy and tensorflow random seeds
         self.seed = seed
         np.random.seed(seed)
-        tf.set_random_seed(seed)
+        tf.random.set_seed(seed)
         self.rs = np.random.RandomState(seed=seed)
 
     def __getstate__(self):
@@ -352,13 +354,14 @@ class KnowledgeGraphEmbeddingModel(BaseEstimator, RegressorMixin, metaclass=ABCM
 
         # ================================================================================================
         # tensorflow graph for the embedding model
-        tf.reset_default_graph()
+        #tf.reset_default_graph()
 
         # initialise model _embeddings
         self.init_embeddings()
 
         # define input placeholder
-        self._tf_vars["xin_pos"] = xin_pos = tf.placeholder(dtype=tf.int32, shape=[None, 3])
+
+        self._tf_vars["xin_pos"] = xin_pos = tf.compat.v1.placeholder(dtype=tf.int32, shape=[None, 3])
 
         # generate negative corruption from the input triples
         xin_neg = self.generate_negatives(xin_pos)
@@ -391,7 +394,7 @@ class KnowledgeGraphEmbeddingModel(BaseEstimator, RegressorMixin, metaclass=ABCM
         self.log.debug("Initialising tensorflow session")
         session = self._init_tf_session()
         self.log.debug("Executing tensorflow global variable initialiser")
-        session.run(tf.global_variables_initializer())
+        session.run(tf.initialize_parameters())
 
         tr_loss_list = []
         tr_speed_list = []
@@ -419,9 +422,9 @@ class KnowledgeGraphEmbeddingModel(BaseEstimator, RegressorMixin, metaclass=ABCM
                        (self.nb_epochs, np.mean(tr_speed_list), np.mean(tr_loss_list), np.std(tr_loss_list)))
 
     def _init_tf_session(self):
-        tf_session_config = tf.ConfigProto(log_device_placement=False, allow_soft_placement=True)
+        tf_session_config = tf.compat.v1.ConfigProto(log_device_placement=False, allow_soft_placement=True)
         tf_session_config.gpu_options.allow_growth = True
-        self._tf_vars["session"] = session = tf.Session(config=tf_session_config)
+        self._tf_vars["session"] = session = tf.compat.v1.Session(config=tf_session_config)
         return session
 
     def _init_prediction_flow(self):
@@ -433,9 +436,9 @@ class KnowledgeGraphEmbeddingModel(BaseEstimator, RegressorMixin, metaclass=ABCM
         tf.Tensor
             the scores tensorflow tensor
         """
-        if not ("session" in self._tf_vars and type(self._tf_vars["session"]) == tf.Session):
+        if not ("session" in self._tf_vars and type(self._tf_vars["session"]) == tf.compat.v1.Session):
             self._init_tf_session()
-        self._tf_vars["xin_predict"] = xin_predict = tf.placeholder(dtype=tf.int32, shape=[None, 3])
+        self._tf_vars["xin_predict"] = xin_predict = tf.compat.v1.placeholder(dtype=tf.int32, shape=[None, 3])
         # lookup embedding of the triples components
         em_subs, em_rels, em_objs = self.lookup_triples_embeddings(xin_predict)
         # compute triples' scores
@@ -631,13 +634,13 @@ class KnowledgeGraphEmbeddingModelMCL(KnowledgeGraphEmbeddingModel):
 
         # ================================================================================================
         # tensorflow graph for the embedding model
-        tf.reset_default_graph()
+        #tf.reset_default_graph()
 
         # initialise model _embeddings
         self.init_embeddings()
 
         # define input placeholder
-        self._tf_vars["xin_pos"] = xin_pos = tf.placeholder(dtype=tf.int32, shape=[None, 3])
+        self._tf_vars["xin_pos"] = xin_pos = tf.compat.v1.placeholder(dtype=tf.int32, shape=[None, 3])
 
         # lookup embedding of the triples components
         em_subs, em_rels, em_objs = self.lookup_triples_embeddings(xin_pos)
@@ -666,7 +669,7 @@ class KnowledgeGraphEmbeddingModelMCL(KnowledgeGraphEmbeddingModel):
         self.log.debug("Initialising tensorflow session")
         session = self._init_tf_session()
         self.log.debug("Executing tensorflow global variable initialiser")
-        session.run(tf.global_variables_initializer())
+        session.run(tf.initialize_parameters())
 
         tr_loss_list = []
         tr_speed_list = []

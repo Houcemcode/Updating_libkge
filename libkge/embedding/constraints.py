@@ -146,10 +146,10 @@ def get_initializer(initializer, seed=1234):
     """
 
     if initializer == 'xavier_uniform':
-        var_init = tf.contrib.layers.xavier_initializer(uniform=True, seed=seed)
+        var_init = tf.keras.initializers.GlorotUniform(seed=seed)
 
     elif initializer == 'xavier_normal':
-        var_init = tf.contrib.layers.xavier_initializer(uniform=False, seed=seed)
+        var_init = tf.keras.initializers.GlorotNormal(seed=seed)
     else:
         raise ValueError("Unknown initialiser type (%s)" % initializer)
 

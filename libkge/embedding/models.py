@@ -255,8 +255,10 @@ class ComplEx(KnowledgeGraphEmbeddingModel):
         """
         # get initialiser variable and initialise tensorflow variables for each component _embeddings
         var_init = get_initializer(self.initialiser, self.seed)
-        em_ents = tf.get_variable("em_ents", shape=[self.nb_ents+1, self.em_size*2], initializer=var_init)
-        em_rels = tf.get_variable("em_rels", shape=[self.nb_rels+1, self.em_size*2], initializer=var_init)
+        em_ents = tf.Variable(initial_value=var_init(shape=[self.nb_ents+1, self.em_size*2]), name="em_ents")
+        em_rels = tf.Variable(initial_value=var_init(shape=[self.nb_rels+1, self.em_size*2]), name="em_rels")
+        #em_ents = tf.get_variable("em_ents", shape=[self.nb_ents+1, self.em_size*2], initializer=var_init)
+        #em_rels = tf.get_variable("em_rels", shape=[self.nb_rels+1, self.em_size*2], initializer=var_init)
 
         # add component embedding to the embedding vars dictionary
         self._embeddings["ents"] = em_ents

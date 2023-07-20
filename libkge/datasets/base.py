@@ -1,6 +1,6 @@
 import os
-from libkge.io import load_kg_file
-from libkge.util.kg import KgDataset
+from libkge.libkge.io import load_kg_file
+from libkge.libkge.util.kg import KgDataset
 
 THIS_DIR, _ = os.path.split(__file__)
 DATA_DIR = os.path.join(THIS_DIR, "data")
