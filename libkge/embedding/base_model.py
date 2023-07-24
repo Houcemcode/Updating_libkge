@@ -394,7 +394,7 @@ class KnowledgeGraphEmbeddingModel(BaseEstimator, RegressorMixin, metaclass=ABCM
         self.log.debug("Initialising tensorflow session")
         session = self._init_tf_session()
         self.log.debug("Executing tensorflow global variable initialiser")
-        session.run(tf.initialize_parameters())
+        session.run(tf.compat.v1.global_variables_initializer())
 
         tr_loss_list = []
         tr_speed_list = []
@@ -669,7 +669,7 @@ class KnowledgeGraphEmbeddingModelMCL(KnowledgeGraphEmbeddingModel):
         self.log.debug("Initialising tensorflow session")
         session = self._init_tf_session()
         self.log.debug("Executing tensorflow global variable initialiser")
-        session.run(tf.initialize_parameters())
+        session.run(tf.compat.v1.global_variables_initializer())
 
         tr_loss_list = []
         tr_speed_list = []
